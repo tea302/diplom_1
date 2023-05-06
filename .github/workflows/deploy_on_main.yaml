@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - dev_34
+      - dev_35
+      - dev_36
 
 jobs:
   build:
