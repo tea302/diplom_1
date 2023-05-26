@@ -2,10 +2,10 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from core.serializers import ProfileSerializer
-from todolist.goals.models.category_models import GoalCategory
-from todolist.goals.models.comment_models import GoalComment
+from todolist.goals.models import GoalCategory
+from todolist.goals.models import GoalComment
 
-from todolist.goals.models.goal_models import Goal
+from todolist.goals.models import Goal
 
 
 class GoalCategoryCreateSerializer(serializers.ModelSerializer):
@@ -63,11 +63,11 @@ class GoalCommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoalComment
-        read_only_fields = ('id', 'created', 'updated', 'user', 'goal')
+        read_only_fields = ('id', 'created', 'updated', 'user')
         fields = '__all__'
 
     def validate_goal(self, value: Goal):
-        if value.Status.archived:
+        if value.status == Goal.Status.archived:
             raise ValidationError('Goal not found')
         if self.context['request'].user.id != value.user_id:
             raise PermissionDenied
@@ -83,7 +83,7 @@ class GoalCommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_goal(self, value: Goal):
-        if value.Status.archived:
+        if value.status == Goal.Status.archived:
             raise ValidationError('Goal not found')
         if self.context['request'].user.id != value.user_id:
             raise PermissionDenied
