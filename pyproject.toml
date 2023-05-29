@@ -17,6 +17,10 @@ djangorestframework = "^3.14.0"
 django-extensions = "^3.2.1"
 social-auth-app-django = "^5.2.0"
 django-filter = "^23.2"
+pytest = "^7.3.1"
+marshmallow-dataclass = "^8.5.14"
+pytest-factory = "^0.0.1.dev0"
+pytest-factoryboy = "^2.5.1"
 
 
 [tool.poetry.group.dev.dependencies]

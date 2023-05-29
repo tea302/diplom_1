@@ -7,6 +7,8 @@ on:
       - dev_34
       - dev_35
       - dev_36
+      - dev_37
+      - dev_37_1
 
 jobs:
   build:
