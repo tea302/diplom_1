@@ -1,74 +1,77 @@
 from typing import Any
 
 from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseBase
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import GenericAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
-from rest_framework.permissions import IsAuthenticated
+
 from core.models import User
-from core.serializers import CreateUserSerializer, ProfileSerializer, LoginSerializer, UpdatePasswordSerializer
+from core.serializers import UserRegistrationSerializer, UserDetailSerializer, UserChangePasswordSerializer
 
 
-class SignUpView(GenericAPIView):
-    serializer_class = CreateUserSerializer
+class UserCreateView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRegistrationSerializer
 
-    def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        serializer: Serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = User.objects.create_user(**serializer.data)
-
-        return Response(ProfileSerializer(user).data, status=status.HTTP_201_CREATED)
+    def post(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().post(request, *args, **kwargs)
 
 
-class LoginView(GenericAPIView):
-    serializer_class = LoginSerializer
-
-    def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        serializer: Serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = authenticate(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password']
+class UserLoginView(CreateAPIView):
+    def post(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        user: Any = authenticate(
+            username=request.data.get('username'),
+            password=request.data.get('password')
         )
-        if not user:
-            raise AuthenticationFailed
-
-        login(request=request, user=user)
-
-        return Response(ProfileSerializer(user).data)
+        if user:
+            login(request, user)
+            return Response('Successful login', status=status.HTTP_201_CREATED)
+        raise AuthenticationFailed('Invalid username or password')
 
 
-class ProfileView(RetrieveUpdateDestroyAPIView):
-    serializer_class = ProfileSerializer
-    permission_classes = [IsAuthenticated]
+class UserDetailUpdateLogoutView(RetrieveUpdateDestroyAPIView):
+    serializer_class = UserDetailSerializer
+    permission_classes: list = [IsAuthenticated]
 
-    def get_object(self):
+    @method_decorator(ensure_csrf_cookie)
+    def dispatch(self, *args, **kwargs) -> HttpResponseBase:
+        return super().dispatch(*args, **kwargs)
+
+    def get_object(self) -> Any:
         return self.request.user
 
-    def delete(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+    def destroy(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
         logout(request)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response('Successful logout', status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().get(request, *args, **kwargs)
+
+    def put(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().put(request, *args, **kwargs)
+
+    def patch(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().patch(request, *args, **kwargs)
+
+    def delete(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().delete(request, *args, **kwargs)
 
 
-class UpdatePasswordView(GenericAPIView):
-    serializer_class = UpdatePasswordSerializer
-    permission_classes = [IsAuthenticated]
+class UserUpdatePasswordView(UpdateAPIView):
+    serializer_class = UserChangePasswordSerializer
+    permission_classes: list = [IsAuthenticated]
 
-    def put(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        serializer: Serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get_object(self) -> Any:
+        return self.request.user
 
-        user: User = request.user
+    def put(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().put(request, *args, **kwargs)
 
-        if not user.check_password(serializer.validated_data['old_password']):
-            raise AuthenticationFailed('Current password is incorrect')
-
-        user.set_password(serializer.validated_data['new_password'])
-        user.save(update_fields=['password'])
-
-        return Response(serializer.data)
+    def patch(self, request: Request, *args: tuple, **kwargs: dict) -> Response:
+        return super().patch(request, *args, **kwargs)

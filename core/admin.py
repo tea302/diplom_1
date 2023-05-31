@@ -1,21 +1,35 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group
+
 
 from core.models import User
 
 
-@admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    model = User
     list_display = ('username', 'email', 'first_name', 'last_name')
-    search_fields = ('username', 'email', 'first_name', 'last_name')
+    search_fields = ('email', 'first_name', 'last_name', 'username')
+    list_filter = ('is_staff', 'is_active', 'is_superuser')
+    exclude = ('password', )
     readonly_fields = ('last_login', 'date_joined')
+
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Персональная информация', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Разрешения', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
-        ('Особенные даты', {'fields': ('last_login', 'date_joined')}),
+        ('Personal Info', {
+            'fields': ('username', 'email', 'first_name', 'last_name')
+        }),
+        ('Status', {
+            'fields': ('is_active', 'is_staff', 'is_superuser')
+        }),
+        ('Dates', {
+            'fields': ('last_login', 'date_joined')
+        }),
     )
 
+    def save_model(self, request, obj, form, change):
+        password = form.cleaned_data.get('password')
+        if password:
+            obj.set_password(password)
+        super().save_model(request, obj, form, change)
 
-admin.site.unregister(Group)
+
+admin.site.register(User, CustomUserAdmin)

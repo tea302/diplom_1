@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     # First-party apps
     'core',
     'todolist.goals',
+    'todolist.bot',
+    'todolist.tests',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,5 @@ AUTHENTICATION_BACKENDS = (
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
+
+TG_BOT_KEY = env('BOT_TOKEN')
