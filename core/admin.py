@@ -7,7 +7,7 @@ from core.models import User
 
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ('username', 'email', 'first_name', 'last_name', 'sex')
+    list_display = ('username', 'email', 'first_name', 'last_name')
     search_fields = ('email', 'first_name', 'last_name', 'username')
     list_filter = ('is_staff', 'is_active', 'is_superuser')
     exclude = ('password', )
@@ -15,7 +15,7 @@ class CustomUserAdmin(UserAdmin):
 
     fieldsets = (
         ('Personal Info', {
-            'fields': ('username', 'email', 'first_name', 'last_name', 'sex')
+            'fields': ('username', 'email', 'first_name', 'last_name')
         }),
         ('Status', {
             'fields': ('is_active', 'is_staff', 'is_superuser')
